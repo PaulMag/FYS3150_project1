@@ -27,18 +27,19 @@ mat matProduct(mat b, mat c) {
     for (int i=0 ; i<n ; i++) {
         for (int j=0 ; j<n ; j++) {
             for (int k=0 ; k<n ; k++) {
-                a[i,j] += b[i,k] * c[k,j];
+                a(i,j) += b(i,k) * c(k,j);
             }
         }
     }
     return a;
 }
 
-int main(int argc, char* argv[])
-{
+// int main(int argc, char* argv[]) // command line arguments
+int main() {
+
     /******************** (b) ********************/
 
-    int n = 100;
+    int n = 1e4;
     double a = -1;
     double b =  2;
     double c = -1;
@@ -53,6 +54,10 @@ int main(int argc, char* argv[])
     double *fHat = new double[n];
     double *bHat = new double[n];
 
+    clock_t *start = new clock_t[10];
+    clock_t *finish = new clock_t[10];
+    int measurements = 0;
+
     v[0]   = v_0;
     v[n-1] = v_n_1;
 
@@ -65,31 +70,34 @@ int main(int argc, char* argv[])
         fBar[i] = F(x[i]) * (h*h);
     }
 
-    // The wrong algorithm:
-    /*for (int i=1; i < n+1; i++) {
-        bHat[i] = a*v[i-1] + b*v[i] + c*v[i+1];
-    }*/
+    // The algorithm:
 
-    // The right algorithm:
-    bHat[0] = b;
-    fHat[0] = fBar[0];
-    double factor;
+    // *****TiC*****
+    start[measurements] = clock();
+        bHat[0] = b;
+        fHat[0] = fBar[0];
+        double factor;
 
-    for (int i=1; i<n; i++) {
-        factor = a / bHat[i-1]; // avoids doing this twice
-        bHat[i] = b - c * factor;
-        fHat[i] = fBar[i] - fHat[i-1] * factor;
-    }
+        for (int i=1; i<n; i++) {
+            factor = a / bHat[i-1]; // avoids doing this twice
+            bHat[i] = b - c * factor;
+            fHat[i] = fBar[i] - fHat[i-1] * factor;
+        }
 
-    v[n-1] = (fBar[n-1]) / bHat[n-1];
-    for (int i=n-2; i>=0; i--) {
-        v[i] = (fHat[i] - v[i+1] * c) / bHat[i];
-    }
+        v[n-1] = (fBar[n-1]) / bHat[n-1];
+        for (int i=n-2; i>=0; i--) {
+            v[i] = (fHat[i] - v[i+1] * c) / bHat[i];
+        }
+    finish[measurements] = clock();
+    measurements++;
+    // *****TOC*****
 
+    // Writing data to files:
     ofstream info;
     ofstream x_data;
     ofstream analytical_data;
     ofstream numerical_data;
+
     info.open("info.txt");
     x_data.open("x_data.txt");
     analytical_data.open("analytical_data.txt");
@@ -139,9 +147,14 @@ int main(int argc, char* argv[])
         f_a(i) = fBar[i];
     }
 
-    v_a = solve(A_a, f_a);
+    // *****TIC*****
+    start[measurements] = clock();
+        v_a = solve(A_a, f_a);
+    finish[measurements] = clock();
+    measurements++;
+    // *****TOC*****
 
-    // End:
+    // End of main project.
     delete [] v;
     delete [] u;
     delete [] x;
@@ -149,15 +162,42 @@ int main(int argc, char* argv[])
     delete [] fBar;
     delete [] bHat;
 
+
     /******************** (e) ********************/
 
     n = 1e2;
     mat B = randu<mat>(n, n);
     mat C = randu<mat>(n, n);
-
     mat A(n, n);
-    A = matProduct(B, C); // my slow algorithm
-    A = B * C; // Armadillo's (hopefully) fast algorithm
+
+    // *****TIC*****
+    start[measurements] = clock();
+         A = matProduct(B, C); // my slow algorithm
+     finish[measurements] = clock();
+     measurements++;
+    // *****TOC*****
+
+    // *****TIC*****
+    start[measurements] = clock();
+        /* Armadillo's (hopefully) fast algorithm. I am not 100% certain
+         * that this uses BLAS, but as far as I understood that is the default.
+         */
+        A = B * C;
+    finish[measurements] = clock();
+    measurements++;
+    // *****TOC*****
+
+    ofstream timer_data;
+    timer_data.open("timer_data.txt");
+
+    for (int i=0; i<measurements; i++) {
+        timer_data << ((finish[i] - start[i]) * 1.0 / CLOCKS_PER_SEC) << endl;
+    }
+    cout << start[0] << endl;
+    timer_data.close();
+
+    delete [] start;
+    delete [] finish;
 
     return 0;
 }
