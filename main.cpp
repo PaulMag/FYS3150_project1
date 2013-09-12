@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fstream>
 #include <armadillo>
+#include "time.h"
 
 using namespace std;
 using namespace arma;
@@ -18,9 +19,26 @@ double difference(double v, double u) {
     return log10(abs( (v - u) / u ));
 }
 
+mat matProduct(mat b, mat c) {
+
+    int n = b.n_cols; // assumes both b and c are quare and same size
+    mat a = zeros<mat>(n, n);
+
+    for (int i=0 ; i<n ; i++) {
+        for (int j=0 ; j<n ; j++) {
+            for (int k=0 ; k<n ; k++) {
+                a[i,j] += b[i,k] * c[k,j];
+            }
+        }
+    }
+    return a;
+}
+
 int main(int argc, char* argv[])
 {
-    int n = 6;
+    /******************** (b) ********************/
+
+    int n = 100;
     double a = -1;
     double b =  2;
     double c = -1;
@@ -88,30 +106,13 @@ int main(int argc, char* argv[])
     analytical_data.close();
     numerical_data.close();
 
-    // Compare with armadillo's solver:
-    mat A(n,n);
-    vec v_a(n);
-    vec f_a(n);
 
-    A.zeros();
-    A(0, 0) = b;
-    f_a(0)  = fBar[0];
-
-    for (int i=1; i<n; i++) {
-        A(i-1, i) = c;
-        A(i,i)    = b;
-        A(i, i-1) = a;
-        f_a(i) = fBar[i];
-    }
-
-    v_a = solve(A, f_a);
-
-
-    // (c)
+    /******************** (c) ********************/
 
     double *eps = new double[n];
-    double maxError = 0;
-    for (int i=1; i < n-1; i++) { // avoid end because zero divison
+    double maxError = difference(v[1], u[1]);
+
+    for (int i=2; i < n-1; i++) { // avoid end because zero divison
         eps[i] = difference(v[i], u[i]);
         if (eps[i] > maxError) {
             maxError = eps[i];
@@ -119,6 +120,26 @@ int main(int argc, char* argv[])
     }
     cout << maxError << endl;
 
+
+    /******************** (d) ********************/
+    // Compare with armadillo's solver:
+
+    mat A_a(n,n);
+    vec v_a(n);
+    vec f_a(n);
+
+    A_a.zeros();
+    A_a(0, 0) = b;
+    f_a(0)  = fBar[0];
+
+    for (int i=1; i<n; i++) {
+        A_a(i-1, i) = c;
+        A_a(i,i)    = b;
+        A_a(i, i-1) = a;
+        f_a(i) = fBar[i];
+    }
+
+    v_a = solve(A_a, f_a);
 
     // End:
     delete [] v;
@@ -128,7 +149,15 @@ int main(int argc, char* argv[])
     delete [] fBar;
     delete [] bHat;
 
-    // (e)
+    /******************** (e) ********************/
+
+    n = 1e2;
+    mat B = randu<mat>(n, n);
+    mat C = randu<mat>(n, n);
+
+    mat A(n, n);
+    A = matProduct(B, C); // my slow algorithm
+    A = B * C; // Armadillo's (hopefully) fast algorithm
 
     return 0;
 }
