@@ -1,11 +1,14 @@
 import numpy as np
 import matplotlib.pylab as plt
 
+infoFile = open("../build-project1-Desktop-Debug/info.txt", "r")
+n = int(infoFile.readline())
+infoFile.close();
+
 xFile    = open("../build-project1-Desktop-Debug/x_data.txt", "r")
 numFile  = open("../build-project1-Desktop-Debug/numerical_data.txt", "r")
 analFile = open("../build-project1-Desktop-Debug/analytical_data.txt", "r")
 
-n = 10000 + 2
 xData    = np.zeros(n)
 numData  = np.zeros(n)
 analData = np.zeros(n)
