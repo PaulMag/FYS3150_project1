@@ -25,6 +25,7 @@ mat matProduct(mat b, mat c) {
     mat a = zeros<mat>(n, n);
 
     for (int i=0 ; i<n ; i++) {
+        cout << i << " of " << n << endl;
         for (int j=0 ; j<n ; j++) {
             for (int k=0 ; k<n ; k++) {
                 a(i,j) += b(i,k) * c(k,j);
@@ -39,7 +40,7 @@ int main() {
 
     /******************** (b) ********************/
 
-    int n = 1e4;
+    int n = 1e1; // CHANGE THIS TO CHANGE STEP LENGTH
     double a = -1;
     double b =  2;
     double c = -1;
@@ -126,7 +127,7 @@ int main() {
             maxError = eps[i];
         }
     }
-    cout << maxError << endl;
+    cout << "Largest error: " << maxError << endl;
 
 
     /******************** (d) ********************/
@@ -165,16 +166,16 @@ int main() {
 
     /******************** (e) ********************/
 
-    n = 1e2;
+    n = 3e2; // CHANGE THIS TO CHANGE MATRIX SIZES
     mat B = randu<mat>(n, n);
     mat C = randu<mat>(n, n);
     mat A(n, n);
 
     // *****TIC*****
     start[measurements] = clock();
-         A = matProduct(B, C); // my slow algorithm
-     finish[measurements] = clock();
-     measurements++;
+        A = matProduct(B, C); // my slow algorithm
+    finish[measurements] = clock();
+    measurements++;
     // *****TOC*****
 
     // *****TIC*****
@@ -187,13 +188,13 @@ int main() {
     measurements++;
     // *****TOC*****
 
+    // Write algorithm times into file:
     ofstream timer_data;
     timer_data.open("timer_data.txt");
 
     for (int i=0; i<measurements; i++) {
         timer_data << ((finish[i] - start[i]) * 1.0 / CLOCKS_PER_SEC) << endl;
     }
-    cout << start[0] << endl;
     timer_data.close();
 
     delete [] start;
