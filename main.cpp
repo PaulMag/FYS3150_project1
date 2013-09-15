@@ -21,11 +21,11 @@ double difference(double v, double u) {
 
 mat matProduct(mat b, mat c) {
 
-    int n = b.n_cols; // assumes both b and c are quare and same size
+    int n = b.n_cols; // assumes both b and c are square and same size
     mat a = zeros<mat>(n, n);
 
     for (int i=0 ; i<n ; i++) {
-        cout << i << " of " << n << endl;
+        cout << i << " of " << n << endl; // show progress, can take a long time
         for (int j=0 ; j<n ; j++) {
             for (int k=0 ; k<n ; k++) {
                 a(i,j) += b(i,k) * c(k,j);
@@ -72,6 +72,9 @@ int main() {
     }
 
     // The algorithm:
+        /* I never really found the correct initialization, so my solution
+         * is not very accurate when n is small.
+         */
 
     // *****TiC*****
     start[measurements] = clock();
@@ -124,14 +127,17 @@ int main() {
     for (int i=2; i < n-1; i++) { // avoid end because zero divison
         eps[i] = difference(v[i], u[i]);
         if (eps[i] > maxError) {
-            maxError = eps[i];
+            maxError = eps[i]; // stores the largest error so far
         }
     }
     cout << "Largest error: " << maxError << endl;
+        /* The error becomes very large since the algorithm
+         * is not correct yet.
+         */
 
 
     /******************** (d) ********************/
-    // Compare with armadillo's solver:
+    // Compare with Armadillo's solver:
 
     mat A_a(n,n);
     vec v_a(n);
@@ -166,7 +172,7 @@ int main() {
 
     /******************** (e) ********************/
 
-    n = 3e2; // CHANGE THIS TO CHANGE MATRIX SIZES
+    n = 1e2; // CHANGE THIS TO CHANGE MATRIX SIZES
     mat B = randu<mat>(n, n);
     mat C = randu<mat>(n, n);
     mat A(n, n);
@@ -180,8 +186,9 @@ int main() {
 
     // *****TIC*****
     start[measurements] = clock();
-        /* Armadillo's (hopefully) fast algorithm. I am not 100% certain
-         * that this uses BLAS, but as far as I understood that is the default.
+        /* Armadillo's fast algorithm. I am not 100% certain
+         * that this uses BLAS, but as far as I understood that is the default,
+         * and at least it's fast, and that was the purpose.
          */
         A = B * C;
     finish[measurements] = clock();
